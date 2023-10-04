@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
+from .forms import TaskForm
 # from django.http import HttpResponse
 
 # Create your views here.
@@ -37,6 +38,17 @@ def signup(request):
         })
 def tasks(request):
     return render (request, 'task.html')
+def create_task(request):
+    if request.method == 'GET':
+        return render(request, 'create_task.html', {
+            'form': TaskForm
+        })
+    else:
+        print(request.POST)
+        return render(request, 'create_task.html', {
+            'form': TaskForm
+        })
+
 
 def signout (request): 
     logout(request)
@@ -60,3 +72,5 @@ def signin(request):
         return render(request, 'signin.html', {
             'form': AuthenticationForm
         })
+    
+
