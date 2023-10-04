@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from .forms import TaskForm
+from .models import Task
 # from django.http import HttpResponse
 
 # Create your views here.
@@ -25,7 +26,7 @@ def signup(request):
                 user = User.objects.create_user(username=request.POST['username'], password=request.POST['password1'])
                 user.save()
                 login(request, user)
-                return redirect ('task')
+                return redirect ('tasks')
                 #return HttpResponse('User created successfully')
             except:
                 return render(request, 'signup.html', {
@@ -37,17 +38,30 @@ def signup(request):
             'error': 'Password do not match'
         })
 def tasks(request):
-    return render (request, 'task.html')
+    tasks = Task.objects.filter(user=request.user, datecompleted__isnull=True)
+    return render(request, 'tasks.html', {
+        'tasks': tasks
+    })
+
 def create_task(request):
     if request.method == 'GET':
         return render(request, 'create_task.html', {
             'form': TaskForm
         })
     else:
-        print(request.POST)
-        return render(request, 'create_task.html', {
-            'form': TaskForm
-        })
+        try: 
+            form = TaskForm(request.POST)
+            new_task = form.save(commit=False)
+            new_task.user = request.user
+            new_task.save()
+            return redirect('tasks')
+
+        except ValueError:
+            return render(request, 'create_task.html', {
+                'form': TaskForm,
+                'error': 'Bad data passed in. Try again.'
+            })
+        
 
 
 def signout (request): 
@@ -69,8 +83,5 @@ def signin(request):
         else: 
             login(request, user)
             return redirect ('tasks')
-        return render(request, 'signin.html', {
-            'form': AuthenticationForm
-        })
-    
+       
 
